@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f629a3">
+<title>HDS — Kids Programming Language</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  /* ── Your style.css variables ── */
+  :root {
+    --bg:       beige;
+    --bg2:      #f5f0e0;
+    --bg3:      #ede8d5;
+    --border:   #000000;
+    --pink:     #f629a3;
+    --text:     #000000;
+    --muted:    #555555;
+    --error:    #cc0000;
+    --success:  #007700;
+    --warn:     #886600;
+    --gutter:   #888888;
+    --editor-bg:#1a1a2e;
+    --editor-fg:#e8e8e8;
+    --editor-line:#2a2a3e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { background-color: beige; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 2px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* h1 centred per your style.css */
+  h1 {
+    text-align: center;
+  }
+
+  .logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--pink);
+    letter-spacing: 3px;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  .logo-sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: -2px;
+  }
+
+  .spacer { flex: 1; }
+
+  /* All buttons follow your #to_nav / #to_debit style */
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 7px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.5px;
+    /* Your exact button style */
+    color: #000000;
+    background-color: #f629a3;
+    border: #000000 solid 2px;
+  }
+  .btn:hover { opacity: 0.82; }
+  .btn:active { transform: scale(0.97); }
+
+  /* Subtle variation for secondary buttons — lighter pink tint */
+  .btn-clear {
+    background-color: #fdd9ef;
+    color: #000;
+    border: #000000 solid 2px;
+  }
+  .btn-docs {
+    background-color: #fdd9ef;
+    color: #000;
+    border: #000000 solid 2px;
+  }
+
+  kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto;
+    overflow: hidden;
+  }
+
+  @media (max-width: 700px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr auto; }
+    .output-panel { border-left: none; border-top: 2px solid var(--border); }
+  }
+
+  /* ── EDITOR PANEL ── */
+  .editor-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 2px solid var(--border);
+  }
+
+  .panel-header {
+    background: var(--bg3);
+    border-bottom: 2px solid var(--border);
+    padding: 6px 14px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  .panel-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+  }
+
+  .editor-wrap {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Line numbers sit on dark editor bg */
+  .line-numbers {
+    padding: 16px 0;
+    min-width: 48px;
+    text-align: right;
+    padding-right: 10px;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #666;
+    background: var(--editor-line);
+    user-select: none;
+    pointer-events: none;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: 2px solid var(--border);
+  }
+
+  /* Editor itself stays dark for readability — like VS Code embedded */
+  #editor {
+    flex: 1;
+    background: var(--editor-bg);
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--editor-fg);
+    padding: 16px;
+    caret-color: var(--pink);
+    tab-size: 2;
+    overflow: auto;
+    white-space: pre;
+  }
+
+  #editor::selection { background: rgba(246,41,163,0.25); }
+
+  /* ── OUTPUT PANEL ── */
+  .output-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  #output {
+    flex: 1;
+    padding: 16px;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    overflow-y: auto;
+    background: var(--bg2);
+    border: none;
+  }
+
+  #output:empty::before {
+    content: "// Run your HDS program to see output here...";
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .out-line  { display: block; animation: fadeIn 0.12s ease; }
+  .out-print { color: #000; }
+  .out-error { color: var(--error); font-weight: 700; }
+  .out-error::before { content: "✗ "; }
+  .out-ok    { color: var(--success); font-weight: 700; }
+  .out-sep   { color: #bbb; user-select: none; }
+
+  @keyframes fadeIn { from { opacity:0; transform: translateX(-4px); } to { opacity:1; transform: none; } }
+
+  /* ── STATUS BAR — pink like your nav buttons ── */
+  .statusbar {
+    grid-column: 1 / -1;
+    background-color: #f629a3;
+    color: #000000;
+    border: #000000 solid;
+    border-width: 2px 0 0 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 4px 16px;
+    text-align: center;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .statusbar.error { background-color: #ffaaaa; border-color: #cc0000; }
+  .statusbar.ok    { background-color: #aaffaa; border-color: #007700; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: var(--bg3); }
+  ::-webkit-scrollbar-thumb { background: var(--pink); border: 1px solid #000; border-radius: 0; }
+  ::-webkit-scrollbar-thumb:hover { background: #c0007a; }
+
+  /* ── DOCS PANEL ── */
+  .docs-panel {
+    position: fixed;
+    right: 16px; bottom: 40px;
+    background: var(--bg2);
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    font-size: 0.75rem;
+    width: 300px;
+    max-height: 380px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: 4px 4px 0 #000;
+  }
+  .docs-panel.open { display: block; }
+  .docs-panel h3 { color: var(--pink); margin-bottom: 10px; font-size: 0.82rem; text-align: center; border-bottom: 1px solid #000; padding-bottom: 6px; }
+  .docs-panel code { color: #a0007a; background: var(--bg3); padding: 1px 5px; border-radius: 3px; border: 1px solid #ccc; }
+  .docs-panel .doc-item { margin-bottom: 10px; line-height: 1.5; }
+  .docs-panel .doc-item small { color: var(--muted); display: block; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">HDS</div>
+    <div class="logo-sub">Kids Programming Language</div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-example" onclick="loadExample()">📂 Example</button>
+  <button class="btn btn-docs" onclick="toggleDocs()">📖 Docs</button>
+  <button class="btn btn-clear" onclick="clearOutput()">✕ Clear</button>
+  <button class="btn btn-run" onclick="runCode()">▶ Run <kbd>F5</kbd></button>
+</header>
+
+<main>
+  <div class="editor-panel">
+    <div class="panel-header">
+      <span class="panel-dot" style="background:#f629a3"></span>
+      editor — main.hds
+    </div>
+    <div class="editor-wrap">
+      <div class="line-numbers" id="lineNumbers">1</div>
+      <textarea id="editor" spellcheck="false" autocorrect="off" autocapitalize="off"
+        placeholder="# Write your HDS code here..."></textarea>
+    </div>
+  </div>
+
+  <div class="output-panel">
+    <div class="panel-header">
+      <span class="panel-dot" style="background:#000"></span>
+      output
+    </div>
+    <div id="output"></div>
+  </div>
+
+  <div class="statusbar" id="statusbar">
+    HDS v1.0 — Ready
+  </div>
+</main>
+
+<!-- DOCS PANEL -->
+<div class="docs-panel" id="docsPanel">
+  <h3>📖 HDS Language Reference</h3>
+
+  <div class="doc-item"><code>print "text"</code><small>Print text or a variable</small></div>
+  <div class="doc-item"><code>set x = 10</code><small>Create / assign a variable</small></div>
+  <div class="doc-item"><code>set x = x + 1</code><small>Math: + - * / % ^</small></div>
+  <div class="doc-item"><code>if x > 5 then ... end</code><small>If condition</small></div>
+  <div class="doc-item"><code>if x > 5 then ... else ... end</code><small>If/else</small></div>
+  <div class="doc-item"><code>repeat 5 times ... end</code><small>Loop N times</small></div>
+  <div class="doc-item"><code>while x &lt; 10 do ... end</code><small>While loop</small></div>
+  <div class="doc-item"><code>function greet() ... end</code><small>Define a function</small></div>
+  <div class="doc-item"><code>call greet()</code><small>Call a function</small></div>
+  <div class="doc-item"><code>function add(a, b) ... return a + b ... end</code><small>Function with return</small></div>
+  <div class="doc-item"><code># comment</code><small>Single line comment</small></div>
+  <div class="doc-item"><code>true / false</code><small>Boolean values</small></div>
+  <div class="doc-item"><code>and / or / not</code><small>Logical operators</small></div>
+  <div class="doc-item"><code>== != &lt; &gt; &lt;= &gt;=</code><small>Comparison operators</small></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//   HDS INTERPRETER — Pure JavaScript
+//   Supports: variables, math, if/else, loops,
+//             functions, print, comments
+// ═══════════════════════════════════════════════════
+
+// ── TOKENIZER ──────────────────────────────────────
+const TT = {
+  NUM: 'NUM', STR: 'STR', BOOL: 'BOOL', ID: 'ID',
+  PLUS:'+', MINUS:'-', STAR:'*', SLASH:'/', MOD:'%', CARET:'^',
+  EQ:'==', NEQ:'!=', LT:'<', GT:'>', LTE:'<=', GTE:'>=',
+  ASSIGN:'=', LPAREN:'(', RPAREN:')', COMMA:',',
+  KW: 'KW', EOF: 'EOF'
+};
+
+const KEYWORDS = new Set([
+  'print','set','if','then','else','end','repeat','times',
+  'while','do','function','call','return','and','or','not',
+  'true','false'
+]);
+
+function tokenize(src) {
+  const tokens = [];
+  let i = 0;
+  const lines = src.split('\n');
+  let lineNum = 1;
+
+  // flatten with line info
+  const chars = [];
+  for (const line of lines) {
+    for (const c of line) chars.push({ c, line: lineNum });
+    chars.push({ c: '\n', line: lineNum });
+    lineNum++;
+  }
+
+  let pos = 0;
+
+  function peek(off=0) { return pos+off < chars.length ? chars[pos+off].c : ''; }
+  function cur() { return chars[pos]; }
+  function advance() { return chars[pos++]; }
+
+  while (pos < chars.length) {
+    const { c, line } = cur();
+
+    // whitespace / newline
+    if (c === '\n' || c === '\r' || c === ' ' || c === '\t') { advance(); continue; }
+
+    // comment
+    if (c === '#') {
+      while (pos < chars.length && cur().c !== '\n') advance();
+      continue;
+    }
+
+    // string
+    if (c === '"' || c === "'") {
+      const q = c; advance();
+      let s = '';
+      while (pos < chars.length && cur().c !== q) {
+        s += cur().c; advance();
+      }
+      advance(); // closing quote
+      tokens.push({ type: TT.STR, value: s, line });
+      continue;
+    }
+
+    // number
+    if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(peek(1)))) {
+      let n = '';
+      while (pos < chars.length && /[0-9.]/.test(cur().c)) { n += cur().c; advance(); }
+      tokens.push({ type: TT.NUM, value: parseFloat(n), line });
+      continue;
+    }
+
+    // identifier / keyword
+    if (/[a-zA-Z_]/.test(c)) {
+      let id = '';
+      while (pos < chars.length && /[a-zA-Z0-9_]/.test(cur().c)) { id += cur().c; advance(); }
+      if (id === 'true' || id === 'false')
+        tokens.push({ type: TT.BOOL, value: id === 'true', line });
+      else if (KEYWORDS.has(id))
+        tokens.push({ type: TT.KW, value: id, line });
+      else
+        tokens.push({ type: TT.ID, value: id, line });
+      continue;
+    }
+
+    // two-char operators
+    const two = c + peek(1);
+    if (two === '==') { tokens.push({ type: TT.EQ,  value:'==', line }); advance(); advance(); continue; }
+    if (two === '!=') { tokens.push({ type: TT.NEQ, value:'!=', line }); advance(); advance(); continue; }
+    if (two === '<=') { tokens.push({ type: TT.LTE, value:'<=', line }); advance(); advance(); continue; }
+    if (two === '>=') { tokens.push({ type: TT.GTE, value:'>=', line }); advance(); advance(); continue; }
+
+    // single-char operators
+    const ops = { '+':TT.PLUS,'-':TT.MINUS,'*':TT.STAR,'/':TT.SLASH,
+                  '%':TT.MOD,'^':TT.CARET,'<':TT.LT,'>':TT.GT,
+                  '=':TT.ASSIGN,'(':TT.LPAREN,')':TT.RPAREN,',':TT.COMMA };
+    if (ops[c]) { tokens.push({ type: ops[c], value: c, line }); advance(); continue; }
+
+    // unknown
+    tokens.push({ type: 'UNKNOWN', value: c, line });
+    advance();
+  }
+
+  tokens.push({ type: TT.EOF, value: null, line: lineNum });
+  return tokens;
+}
+
+// ── PARSER ─────────────────────────────────────────
+// Produces an AST from token stream.
+
+function parse(tokens) {
+  let pos = 0;
+
+  function peek() { return tokens[pos]; }
+  function advance() { return tokens[pos++]; }
+  function expect(typeOrKW, val) {
+    const t = tokens[pos];
+    if (val !== undefined) {
+      if (t.value !== val) throw { msg: `Expected "${val}" but got "${t.value}"`, line: t.line };
+    } else {
+      if (t.type !== typeOrKW) throw { msg: `Expected ${typeOrKW} but got ${t.type}`, line: t.line };
+    }
+    return advance();
+  }
+  function check(typeOrKW, val) {
+    const t = tokens[pos];
+    if (val !== undefined) return t.value === val;
+    return t.type === typeOrKW;
+  }
+  function checkKW(val) { return tokens[pos].type === TT.KW && tokens[pos].value === val; }
+  function matchKW(val) { if (checkKW(val)) { advance(); return true; } return false; }
+
+  function parseProgram() {
+    const stmts = [];
+    while (!check(TT.EOF)) {
+      stmts.push(parseStatement());
+    }
+    return { type: 'Program', body: stmts };
+  }
+
+  function parseStatement() {
+    const t = peek();
+
+    if (t.type === TT.KW) {
+      if (t.value === 'print')    return parsePrint();
+      if (t.value === 'set')      return parseSet();
+      if (t.value === 'if')       return parseIf();
+      if (t.value === 'repeat')   return parseRepeat();
+      if (t.value === 'while')    return parseWhile();
+      if (t.value === 'function') return parseFunction();
+      if (t.value === 'call')     return parseCallStmt();
+      if (t.value === 'return')   return parseReturn();
+    }
+
+    // bare function call  e.g.  greet()  without "call"
+    if (t.type === TT.ID && tokens[pos+1] && tokens[pos+1].type === TT.LPAREN) {
+      return parseCallStmt(true);
+    }
+
+    throw { msg: `Unexpected token: "${t.value}"`, line: t.line };
+  }
+
+  function parsePrint() {
+    const line = peek().line;
+    expect(TT.KW, 'print');
+    const expr = parseExpr();
+    return { type: 'Print', expr, line };
+  }
+
+  function parseSet() {
+    const line = peek().line;
+    expect(TT.KW, 'set');
+    const name = expect(TT.ID).value;
+    expect(TT.ASSIGN);
+    const expr = parseExpr();
+    return { type: 'Set', name, expr, line };
+  }
+
+  function parseIf() {
+    const line = peek().line;
+    expect(TT.KW, 'if');
+    const cond = parseExpr();
+    expect(TT.KW, 'then');
+    const then = parseBlock(['else','end']);
+    let elseBody = null;
+    if (checkKW('else')) { advance(); elseBody = parseBlock(['end']); }
+    expect(TT.KW, 'end');
+    return { type: 'If', cond, then, elseBody, line };
+  }
+
+  function parseRepeat() {
+    const line = peek().line;
+    expect(TT.KW, 'repeat');
+    const count = parseExpr();
+    expect(TT.KW, 'times');
+    const body = parseBlock(['end']);
+    expect(TT.KW, 'end');
+    return { type: 'Repeat', count, body, line };
+  }
+
+  function parseWhile() {
+    const line = peek().line;
+    expect(TT.KW, 'while');
+    const cond = parseExpr();
+    expect(TT.KW, 'do');
+    const body = parseBlock(['end']);
+    expect(TT.KW, 'end');
+    return { type: 'While', cond, body, line };
+  }
+
+  function parseFunction() {
+    const line = peek().line;
+    expect(TT.KW, 'function');
+    const name = expect(TT.ID).value;
+    expect(TT.LPAREN);
+    const params = [];
+    while (!check(TT.RPAREN)) {
+      params.push(expect(TT.ID).value);
+      if (check(TT.COMMA)) advance();
+    }
+    expect(TT.RPAREN);
+    const body = parseBlock(['end']);
+    expect(TT.KW, 'end');
+    return { type: 'FunctionDef', name, params, body, line };
+  }
+
+  function parseCallStmt(bare=false) {
+    const line = peek().line;
+    if (!bare) expect(TT.KW, 'call');
+    const name = expect(TT.ID).value;
+    expect(TT.LPAREN);
+    const args = [];
+    while (!check(TT.RPAREN)) {
+      args.push(parseExpr());
+      if (check(TT.COMMA)) advance();
+    }
+    expect(TT.RPAREN);
+    return { type: 'CallStmt', name, args, line };
+  }
+
+  function parseReturn() {
+    const line = peek().line;
+    expect(TT.KW, 'return');
+    const expr = check(TT.EOF) || checkKW('end') || checkKW('else') ? null : parseExpr();
+    return { type: 'Return', expr, line };
+  }
+
+  function parseBlock(stopKWs) {
+    const stmts = [];
+    while (!check(TT.EOF) && !stopKWs.some(k => checkKW(k))) {
+      stmts.push(parseStatement());
+    }
+    return stmts;
+  }
+
+  // Expression parsing — precedence climbing
+  function parseExpr() { return parseOr(); }
+
+  function parseOr() {
+    let left = parseAnd();
+    while (checkKW('or')) { advance(); const right = parseAnd(); left = { type:'BinOp', op:'or', left, right }; }
+    return left;
+  }
+
+  function parseAnd() {
+    let left = parseNot();
+    while (checkKW('and')) { advance(); const right = parseNot(); left = { type:'BinOp', op:'and', left, right }; }
+    return left;
+  }
+
+  function parseNot() {
+    if (checkKW('not')) { advance(); return { type:'UnaryOp', op:'not', operand: parseNot() }; }
+    return parseComparison();
+  }
+
+  function parseComparison() {
+    let left = parseAddSub();
+    const cops = [TT.EQ, TT.NEQ, TT.LT, TT.GT, TT.LTE, TT.GTE];
+    while (cops.includes(peek().type)) {
+      const op = advance().value;
+      const right = parseAddSub();
+      left = { type:'BinOp', op, left, right };
+    }
+    return left;
+  }
+
+  function parseAddSub() {
+    let left = parseMulDiv();
+    while (peek().type === TT.PLUS || peek().type === TT.MINUS) {
+      const op = advance().value;
+      const right = parseMulDiv();
+      left = { type:'BinOp', op, left, right };
+    }
+    return left;
+  }
+
+  function parseMulDiv() {
+    let left = parsePower();
+    while ([TT.STAR, TT.SLASH, TT.MOD].includes(peek().type)) {
+      const op = advance().value;
+      const right = parsePower();
+      left = { type:'BinOp', op, left, right };
+    }
+    return left;
+  }
+
+  function parsePower() {
+    let left = parseUnary();
+    while (peek().type === TT.CARET) {
+      advance();
+      const right = parseUnary();
+      left = { type:'BinOp', op:'^', left, right };
+    }
+    return left;
+  }
+
+  function parseUnary() {
+    if (peek().type === TT.MINUS) { advance(); return { type:'UnaryOp', op:'-', operand: parsePrimary() }; }
+    return parsePrimary();
+  }
+
+  function parsePrimary() {
+    const t = peek();
+
+    if (t.type === TT.NUM)  { advance(); return { type:'Literal', value: t.value }; }
+    if (t.type === TT.STR)  { advance(); return { type:'Literal', value: t.value }; }
+    if (t.type === TT.BOOL) { advance(); return { type:'Literal', value: t.value }; }
+
+    if (t.type === TT.ID) {
+      // function call in expression
+      if (tokens[pos+1] && tokens[pos+1].type === TT.LPAREN) {
+        advance();
+        expect(TT.LPAREN);
+        const args = [];
+        while (!check(TT.RPAREN)) {
+          args.push(parseExpr());
+          if (check(TT.COMMA)) advance();
+        }
+        expect(TT.RPAREN);
+        return { type:'CallExpr', name: t.value, args };
+      }
+      advance();
+      return { type:'Var', name: t.value };
+    }
+
+    if (t.type === TT.LPAREN) {
+      advance();
+      const expr = parseExpr();
+      expect(TT.RPAREN);
+      return expr;
+    }
+
+    throw { msg: `Unexpected "${t.value}" in expression`, line: t.line };
+  }
+
+  return parseProgram();
+}
+
+// ── INTERPRETER ────────────────────────────────────
+
+class ReturnSignal { constructor(v) { this.value = v; } }
+
+function interpret(ast, printFn) {
+  const globalEnv = { vars: {}, fns: {} };
+
+  function run(nodes, env) {
+    for (const node of nodes) {
+      const result = exec(node, env);
+      if (result instanceof ReturnSignal) return result;
+    }
+  }
+
+  function exec(node, env) {
+    switch (node.type) {
+
+      case 'Print': {
+        const val = evalExpr(node.expr, env);
+        printFn(String(val));
+        break;
+      }
+
+      case 'Set': {
+        env.vars[node.name] = evalExpr(node.expr, env);
+        break;
+      }
+
+      case 'If': {
+        const cond = evalExpr(node.cond, env);
+        if (cond) return run(node.then, { vars: Object.create(env.vars), fns: env.fns });
+        else if (node.elseBody) return run(node.elseBody, { vars: Object.create(env.vars), fns: env.fns });
+        break;
+      }
+
+      case 'Repeat': {
+        const count = evalExpr(node.count, env);
+        if (typeof count !== 'number') throw { msg: 'repeat count must be a number', line: node.line };
+        for (let i = 0; i < count; i++) {
+          const r = run(node.body, { vars: Object.create(env.vars), fns: env.fns });
+          if (r instanceof ReturnSignal) return r;
+        }
+        break;
+      }
+
+      case 'While': {
+        let safety = 0;
+        while (evalExpr(node.cond, env)) {
+          if (++safety > 100000) throw { msg: 'Infinite loop detected (over 100,000 iterations)', line: node.line };
+          const r = run(node.body, { vars: Object.create(env.vars), fns: env.fns });
+          if (r instanceof ReturnSignal) return r;
+        }
+        break;
+      }
+
+      case 'FunctionDef': {
+        env.fns[node.name] = node;
+        break;
+      }
+
+      case 'CallStmt': {
+        callFn(node.name, node.args, env, node.line);
+        break;
+      }
+
+      case 'Return': {
+        const val = node.expr ? evalExpr(node.expr, env) : null;
+        return new ReturnSignal(val);
+      }
+
+      default:
+        throw { msg: `Unknown statement type: ${node.type}`, line: 0 };
+    }
+  }
+
+  function callFn(name, argExprs, env, line) {
+    const fn = env.fns[name] || globalEnv.fns[name];
+    if (!fn) throw { msg: `Unknown function: "${name}"`, line };
+    const args = argExprs.map(a => evalExpr(a, env));
+    if (args.length !== fn.params.length)
+      throw { msg: `Function "${name}" expects ${fn.params.length} arg(s) but got ${args.length}`, line };
+    const fnEnv = { vars: {}, fns: { ...globalEnv.fns, ...env.fns } };
+    fn.params.forEach((p, i) => fnEnv.vars[p] = args[i]);
+    const r = run(fn.body, fnEnv);
+    if (r instanceof ReturnSignal) return r.value;
+    return null;
+  }
+
+  function evalExpr(node, env) {
+    switch (node.type) {
+      case 'Literal': return node.value;
+
+      case 'Var': {
+        // Walk prototype chain (created via Object.create)
+        let v = env.vars;
+        while (v) {
+          if (Object.prototype.hasOwnProperty.call(v, node.name)) return v[node.name];
+          v = Object.getPrototypeOf(v);
+        }
+        throw { msg: `Variable "${node.name}" is not defined`, line: 0 };
+      }
+
+      case 'UnaryOp': {
+        const val = evalExpr(node.operand, env);
+        if (node.op === '-') return -val;
+        if (node.op === 'not') return !val;
+        break;
+      }
+
+      case 'BinOp': {
+        const l = evalExpr(node.left, env);
+        const r = evalExpr(node.right, env);
+        switch (node.op) {
+          case '+':   return typeof l === 'string' || typeof r === 'string' ? String(l) + String(r) : l + r;
+          case '-':   return l - r;
+          case '*':   return l * r;
+          case '/':   if (r === 0) throw { msg: 'Division by zero', line: 0 }; return l / r;
+          case '%':   return l % r;
+          case '^':   return Math.pow(l, r);
+          case '==':  return l === r;
+          case '!=':  return l !== r;
+          case '<':   return l < r;
+          case '>':   return l > r;
+          case '<=':  return l <= r;
+          case '>=':  return l >= r;
+          case 'and': return l && r;
+          case 'or':  return l || r;
+        }
+        break;
+      }
+
+      case 'CallExpr': {
+        return callFn(node.name, node.args, env, 0);
+      }
+    }
+  }
+
+  run(ast.body, globalEnv);
+}
+
+// ── UI ─────────────────────────────────────────────
+
+const editor     = document.getElementById('editor');
+const output     = document.getElementById('output');
+const statusbar  = document.getElementById('statusbar');
+const lineNums   = document.getElementById('lineNumbers');
+
+function updateLineNumbers() {
+  const lines = editor.value.split('\n').length;
+  lineNums.innerHTML = Array.from({length: lines}, (_,i) => i+1).join('<br>');
+  // Sync scroll
+  lineNums.scrollTop = editor.scrollTop;
+}
+
+editor.addEventListener('input', updateLineNumbers);
+editor.addEventListener('scroll', () => { lineNums.scrollTop = editor.scrollTop; });
+
+// Tab support
+editor.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = editor.selectionStart, end = editor.selectionEnd;
+    editor.value = editor.value.substring(0, s) + '  ' + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = s + 2;
+    updateLineNumbers();
+  }
+  if (e.key === 'F5') { e.preventDefault(); runCode(); }
+});
+
+function setStatus(msg, type='') {
+  statusbar.textContent = msg;
+  statusbar.className = 'statusbar ' + type;
+}
+
+function clearOutput() {
+  output.innerHTML = '';
+  setStatus('HDS v1.0 — Ready');
+}
+
+function appendOutput(text, cls='out-print') {
+  const span = document.createElement('span');
+  span.className = 'out-line ' + cls;
+  span.textContent = text;
+  output.appendChild(span);
+  output.scrollTop = output.scrollHeight;
+}
+
+function runCode() {
+  clearOutput();
+  const src = editor.value;
+  if (!src.trim()) { setStatus('Nothing to run.', ''); return; }
+
+  const sep = document.createElement('span');
+  sep.className = 'out-line out-sep';
+  sep.textContent = '─'.repeat(40);
+  output.appendChild(sep);
+
+  try {
+    const tokens = tokenize(src);
+    const ast    = parse(tokens);
+    let lineCount = 0;
+
+    interpret(ast, (text) => {
+      appendOutput(text, 'out-print');
+      lineCount++;
+    });
+
+    const doneSep = document.createElement('span');
+    doneSep.className = 'out-line out-sep';
+    doneSep.textContent = '─'.repeat(40);
+    output.appendChild(doneSep);
+
+    appendOutput(`✓ Done — ${lineCount} line(s) printed`, 'out-ok');
+    setStatus(`✓ Ran successfully — ${lineCount} output line(s)`, 'ok');
+
+  } catch (err) {
+    const msg = err.msg || String(err);
+    const line = err.line ? ` (line ${err.line})` : '';
+    appendOutput(`Error${line}: ${msg}`, 'out-error');
+    setStatus(`✗ Error${line}: ${msg}`, 'error');
+  }
+}
+
+function toggleDocs() {
+  document.getElementById('docsPanel').classList.toggle('open');
+}
+
+function loadExample() {
+  editor.value = `# ── HDS Example Program ──────────────────
+
+# Variables & Math
+set name = "Alex"
+set score = 0
+set lives = 3
+
+print "Welcome, " + name + "!"
+print "Starting score: " + score
+print ""
+
+# If / Else
+if lives > 0 then
+  print "You are alive! Keep going!"
+else
+  print "Game over!"
+end
+
+# Repeat loop
+print ""
+print "Counting to 5:"
+set i = 1
+repeat 5 times
+  print i
+  set i = i + 1
+end
+
+# While loop
+print ""
+print "Powers of 2 less than 100:"
+set n = 1
+while n < 100 do
+  print n
+  set n = n * 2
+end
+
+# Function with return
+function add(a, b)
+  return a + b
+end
+
+function greet(person)
+  print "Hello, " + person + "!"
+end
+
+print ""
+set result = add(7, 13)
+print "7 + 13 = " + result
+
+call greet("World")
+call greet(name)`;
+
+  updateLineNumbers();
+  clearOutput();
+  setStatus('Example loaded — press ▶ Run to execute');
+}
+
+// Register Service Worker for PWA / offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('HDS SW registered'))
+      .catch(e => console.warn('SW registration failed', e));
+  });
+}
+updateLineNumbers();
+editor.value = `# Welcome to HDS!
+# A simple programming language for kids.
+
+print "Hello, World!"
+
+set x = 10
+set y = 5
+
+if x > y then
+  print x + " is bigger than " + y
+else
+  print y + " is bigger!"
+end
+
+function sayHi(name)
+  print "Hi there, " + name + "!"
+end
+
+call sayHi("Coder")`;
+updateLineNumbers();
+</script>
+</body>
+</html>
