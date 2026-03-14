@@ -357,7 +357,27 @@
 //   Supports: variables, math, if/else, loops,
 //             functions, print, comments
 // ═══════════════════════════════════════════════════
-
+const SYNTAX = {
+  print:    'print',    // mostrar "hola"
+  set:      'var',        // var x = 10
+  if:       'if',         // si x > 5 entonces
+  then:     'then',
+  else:     'else',
+  end:      'end',
+  repeat:   'repeat',
+  times:    'times',
+  while:    'while',
+  do:       'do',
+  function: 'funcion',
+  call:     'call',
+  return:   'return',
+  and:      'and',
+  or:       'or',
+  not:      'not',
+  true:     'true',
+  false:    'false',
+  comment:  '#',
+};
 // ── TOKENIZER ──────────────────────────────────────
 const TT = {
   NUM: 'NUM', STR: 'STR', BOOL: 'BOOL', ID: 'ID',
